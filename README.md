@@ -1,10 +1,10 @@
 # Dobry Student - Symulator Życia Studenta
 
-Gra symulacyjna w języku Java z wykorzystaniem JavaFX, przedstawiająca codzienne życie studenta na kampusie uniwersyteckim.
+Gra serious game w języku Java z wykorzystaniem JavaFX, mająca na celu podnieść intelgiencję emocjonalną gracza poprzez zagłębienie się w wybory gracza i pozwolenie mu lepiej zrozmieć idące za tym konsekwencje
 
 ## Opis gry
 
-"Dobry Student" to gra symulacyjna, w której wcielasz się w rolę studenta przemierzającego kampus uniwersytecki. Twoim celem jest utrzymanie równowagi między różnymi aspektami życia studenckiego poprzez podejmowanie decyzji wpływających na cechy charakteru.
+"Dobry Student" to gra serious game, w której wcielasz się w rolę studenta przemierzającego kampus uniwersytecki. Twoim celem jest dokonywanie wyborów w różnych aktywnościach oraz wzmacnianie odpowiednich cech charakteru zgodnie ze swoją wolą.
 
 ### Główne cechy gry:
 
@@ -15,12 +15,12 @@ Gra symulacyjna w języku Java z wykorzystaniem JavaFX, przedstawiająca codzien
 
 - **Aktywności na kampusie**:
   - 📚 **Biblioteka** - Nauka z eventami grupowymi
-  - 🏠 **Dom** - Spanie z eventami samoregulacji
+  - 🏠 **Dom** - Odpoczynek i jego wpływ na funkcjonowanie
   - 🎉 **Kwadratowa** - Imprezy z eventami społecznymi
-  - 💼 **Praca** - Doświadczenia zawodowe
-  - 🎓 **Uczelnia** - Wykłady i dyskusje
+  - 💼 **Praca** - Doświadczenia w środowisku pracy
+  - 🎓 **Uczelnia** - Uczestnitwo w życiu na kampusie
   - 🛒 **Biedronka** - Zakupy z interakcjami społecznymi
-  - ⚽ **CSA** - Aktywność sportowa
+  - ⚽ **CSA** - Zdrowa rywalizacja w sporcie
   - 🚌 **Autobus** - Podróże komunikacją miejską
 
 - **System eventów**: Każda aktywność zawiera unikalne sytuacje decyzyjne wpływające na cechy charakteru
@@ -98,7 +98,3 @@ src/
 **Mateusz Moćko** - s197675
 
 Projekt zrealizowany w ramach przedmiotu "Języki Programowania dla Windows Phone" (JPWP).
-
-## Licencja
-
-Ten projekt jest dostępny na licencji MIT - zobacz plik [LICENSE](LICENSE) dla szczegółów.
