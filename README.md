@@ -97,4 +97,4 @@ src/
 
 **Mateusz Moćko** - s197675
 
-Projekt zrealizowany w ramach przedmiotu "Języki Programowania dla Windows Phone" (JPWP).
+Projekt zrealizowany w ramach przedmiotu "Języki Programowania Wysokiego Poziomu" (JPWP).
