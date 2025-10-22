@@ -98,8 +98,9 @@ public class Game extends Application {
     public void start(Stage stage) {
         stage.setTitle("Dobry Student");
         
-        // Zmaksymalizowane okno - zajmuje cały ekran z paskiem tytułowym
-        stage.setMaximized(true);
+        // Ustaw rozmiar okna
+        stage.setWidth(1200);
+        stage.setHeight(800);
         stage.setResizable(true);
         
         // Pobierz wymiary ekranu dla obliczenia rozmiaru mapy

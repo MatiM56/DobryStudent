@@ -6,7 +6,7 @@
   "java.configuration.runtimes": [
     {
       "name": "JavaSE-21",
-      "path": "C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.8.9-hotspot",
+      "path": "C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.6.7-hotspot",
       "default": true
     }
   ],
