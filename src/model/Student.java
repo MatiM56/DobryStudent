@@ -75,4 +75,45 @@ public class Student {
             nieczulosc, uleglosc, egocentryzm, impulsywnosc, agresja
         );
     }
+
+    // Gettery dla cech
+    public int getEmpatia() {
+        return empatia;
+    }
+
+    public int getNieczulosc() {
+        return nieczulosc;
+    }
+
+    public int getAsertywnosc() {
+        return asertywnosc;
+    }
+
+    public int getUleglosc() {
+        return uleglosc;
+    }
+
+    public int getSamowiadomosc() {
+        return samowiadomosc;
+    }
+
+    public int getEgocentryzm() {
+        return egocentryzm;
+    }
+
+    public int getSamoregulacja() {
+        return samoregulacja;
+    }
+
+    public int getImpulsywnosc() {
+        return impulsywnosc;
+    }
+
+    public int getUmiejetnoscWspolpracy() {
+        return umiejetnoscWspolpracy;
+    }
+
+    public int getAgresja() {
+        return agresja;
+    }
 }

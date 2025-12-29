@@ -93,6 +93,13 @@ src/
     └── background_music.mp3 # Muzyka w tle
 ```
 
+  ## Zmiany w wersji z 2025-12-02
+
+  - Dodano system **alertów** ostrzegających przy skrajnie niskich lub wysokich poziomach wybranych cech (np. empatii, samoświadomości, współpracy, agresji, egocentryzmu, nieczułości).
+  - Dodano system **pozytywnych alertów** gratulujących przy bardzo dobrych poziomach cech (wysokie cechy pozytywne, niskie negatywne), z częścią fabularną i merytoryczną.
+  - Rozszerzono logikę eventów wsparcia tak, aby lepiej reagowały na niskie wartości kluczowych cech (empatia, samoświadomość, współpraca).
+  - W tej wersji nadal rozwijane zostały rodzaje eventów które gracz może spotkac w trakcie rozgrywki
+
 ## Autor
 
 **Mateusz Moćko** - s197675

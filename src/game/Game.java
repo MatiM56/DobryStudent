@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
 
 import javafx.application.Application;
@@ -52,6 +53,10 @@ public class Game extends Application {
     private final Set<KeyCode> wcisnieteKlawisze = new HashSet<>();
     private boolean czyRuszaSie = false;
     
+    // Liczniki eventów dla specjalnych eventów pomocy - usunięte, zastąpione sprawdzaniem cech
+    private int totalWyborow = 0; // Licznik wszystkich wyborów gracza
+    private final Random random = new Random();
+    
     // Menu i dźwięk
     private boolean muzykaWlaczona = true;
     private double glosnosc = 0; // 0.0 - 1.0
@@ -62,6 +67,7 @@ public class Game extends Application {
     private ComboBox<String> comboBoxWczytaj;
     private Button przyciskMuzyka; // przycisk włącz/wyłącz muzykę
     private Slider suwakGlosnosci;
+    private Label licznikDecyzji; // Licznik decyzji w menu
 
     // Rozmiar mapy i pozycji (prosty grid)
     private final int rozmiarKafelka = 50;
@@ -96,12 +102,14 @@ public class Game extends Application {
     private final int[] zakresAutobusu = {0, 11, 6, 13};        // Autobus (0→6, 11→13) - ZMIEŃ WSPÓŁRZĘDNE!
     @Override
     public void start(Stage stage) {
+        System.out.println("Starting game...");
         stage.setTitle("Dobry Student");
         
         // Ustaw rozmiar okna
         stage.setWidth(1200);
         stage.setHeight(800);
         stage.setResizable(true);
+        System.out.println("Stage configured");
         
         // Pobierz wymiary ekranu dla obliczenia rozmiaru mapy
         javafx.stage.Screen ekran = javafx.stage.Screen.getPrimary();
@@ -147,9 +155,14 @@ public class Game extends Application {
         panelMapy.getChildren().add(obrazGracza);
         obrazGracza.toFront();
 
-        // Menu gry - pozycjonowane na dole po lewej
+        // Menu gry - poziome dla większości, ale licznik na dole
         panelMenu = new HBox(15); // większy odstęp między elementami
         panelMenu.setStyle("-fx-alignment: center-left; -fx-background-color: rgba(0,0,0,0.8); -fx-background-radius: 5;");
+
+        // Licznik decyzji - osobno na dole
+        // menuGlowne = new VBox(10);
+        // menuGlowne.getChildren().add(panelMenu);
+        // menuGlowne.getChildren().add(licznikDecyzji);
 
         // Przycisk nowej gry - większy
         przyciskNowaGra = new Button("Nowa gra");
@@ -185,6 +198,10 @@ public class Game extends Application {
             glosnosc = newVal.doubleValue() / 100.0; // konwertuj z procentów na 0.0-1.0
             aktualizujGlosnosc();
         });
+
+        // Licznik decyzji
+        licznikDecyzji = new Label("Decyzje: 0");
+        licznikDecyzji.setStyle("-fx-font-size: 14px; -fx-text-fill: white;");
 
         panelMenu.getChildren().addAll(przyciskNowaGra, przyciskZapisz, comboBoxWczytaj, przyciskMuzyka, suwakGlosnosci);
 
@@ -223,19 +240,23 @@ public class Game extends Application {
         VBox prawaStrona = new VBox(5, pasekCechPozytywnych, pasekCechNegatywnych, sterowanie, debugInfo);
         prawaStrona.setMaxWidth(Double.MAX_VALUE);
 
-        // Główny layout poziomy - menu po lewej, reszta po prawej
-        HBox dolnyPanel = new HBox(20, panelMenu, prawaStrona);
+        // Główny layout pionowy - mapa na górze, menu na dole
+        HBox menuPanel = new HBox(20, panelMenu, prawaStrona);
         HBox.setHgrow(prawaStrona, javafx.scene.layout.Priority.ALWAYS);
-        dolnyPanel.setStyle("-fx-alignment: center-left; -fx-padding: 10; -fx-background-color: rgba(0,0,0,0.5);");
+        menuPanel.setStyle("-fx-alignment: center-left; -fx-background-color: rgba(0,0,0,0.5);");
 
-        // Prosty układ bez niestandardowego paska tytułowego
-        VBox uklad = new VBox(10, panelMapy, dolnyPanel);
+        VBox uklad = new VBox(10, panelMapy, menuPanel, licznikDecyzji);
         uklad.setStyle("-fx-alignment: center-left; -fx-background-color: #1a1a1a;");
 
         Scene widok = new Scene(uklad);
 
         // Obsługa klawiatury - Wciśnięcie
         widok.setOnKeyPressed(event -> {
+            // Debug: F1 -> wymuś event pomocy (użyteczne do testów)
+            if (event.getCode() == KeyCode.F1) {
+                pokazEventPomocy();
+                return;
+            }
             wcisnieteKlawisze.add(event.getCode());
             
             // Obsłuż ruch za pomocą WASD
@@ -337,8 +358,8 @@ public class Game extends Application {
             // Wykonaj aktywność (zmiany energii, stresu, itp.)
             wykonajAkcje(aktywnosc, "Wykonujesz aktywność: " + aktywnosc.getNazwa());
 
-            // Pokaż losowy event dla tej aktywności
-            pokazEvent(aktywnosc.getRandomEvent(), aktywnosc);
+            // Pokaż event pomocy jeśli cechy wymagają
+            pokazEvent(aktywnosc.getRandomEvent());
         } else {
             pasekCechPozytywnych.setText("Nic tu nie ma do interakcji!");
         }
@@ -409,6 +430,10 @@ public class Game extends Application {
         ustawPozycjeGracza();
         aktualizujDebugInfo();
         
+        // Resetuj liczniki
+        totalWyborow = 0;
+        licznikDecyzji.setText("Decyzje: 0");
+        
         pasekCechPozytywnych.setText("Rozpoczęto nową grę! (Stan studenta nie został zresetowany)");
         System.out.println("Rozpoczęto nową grę");
     }
@@ -434,7 +459,7 @@ public class Game extends Application {
     private void zapiszDoSlotu(int slot) {
         String nazwaPliku = "save" + slot + ".txt";
         try (FileWriter writer = new FileWriter(nazwaPliku)) {
-            writer.write(graczX + "," + graczY + "," + glosnosc + "," + muzykaWlaczona);
+            writer.write(graczX + "," + graczY + "," + glosnosc + "," + muzykaWlaczona + "," + totalWyborow);
             pasekCechPozytywnych.setText("Gra została zapisana w slocie " + slot + "!");
             System.out.println("Gra została zapisana do " + nazwaPliku);
             odswiezListeZapisow(); // Odśwież listę po zapisaniu
@@ -482,11 +507,17 @@ public class Game extends Application {
             graczY = Integer.parseInt(data[1]);
             glosnosc = Double.parseDouble(data[2]);
             muzykaWlaczona = Boolean.parseBoolean(data[3]);
+            if (data.length > 4) {
+                totalWyborow = Integer.parseInt(data[4]);
+            } else {
+                totalWyborow = 0; // Dla starszych zapisów
+            }
             
             ustawPozycjeGracza();
             aktualizujDebugInfo();
             suwakGlosnosci.setValue(glosnosc);
             aktualizujGlosnosc();
+            licznikDecyzji.setText("Decyzje: " + totalWyborow); // Aktualizuj licznik
             
             pasekCechPozytywnych.setText("Gra została wczytana ze slotu " + slot + "!");
             System.out.println("Gra została wczytana z " + nazwaPliku);
@@ -566,10 +597,18 @@ public class Game extends Application {
         // Event dialog będzie tworzony dynamicznie przy każdym evencie
     }
 
-    private void pokazEvent(Event event, ActivityType aktywnosc) {
+    private void pokazEvent(Event event) {
         currentEvent = event;
 
-        // Tworzenie modalnego dialogu
+        // Sprawdź czy wywołać event pomocy (po 10 wyborach, 45% szansy, jeśli cechy wymagają pomocy)
+        if (totalWyborow >= 10 && random.nextDouble() < 0.45 &&
+            (student.getEmpatia() < 30 || student.getSamowiadomosc() < 30 || student.getUmiejetnoscWspolpracy() < 30 ||
+             student.getAsertywnosc() < 30 || student.getAgresja() > 70 || student.getNieczulosc() > 70 || student.getEgocentryzm() > 70)) {
+            pokazEventPomocy();
+            return; // Nie pokazuj normalnego eventu
+        }
+
+        // Tworzenie modalnego dialogue
         eventDialog = new Alert(Alert.AlertType.NONE);
         eventDialog.setTitle("Sytuacja");
         eventDialog.setHeaderText(event.getSituation());
@@ -599,19 +638,428 @@ public class Game extends Application {
                 currentEvent.applyNegativeChoice(student);
             }
 
+            // Sprawdź czy wywołać strict alert krytyczny
+            sprawdzStrictAlert();
+
             // Aktualizacja pasków statusu
             pasekCechPozytywnych.setText(student.getCechyPozytywneStatus());
             pasekCechNegatywnych.setText(student.getCechyNegatywneStatus());
 
+            totalWyborow++; // Zwiększ licznik wszystkich wyborów
+            licznikDecyzji.setText("Decyzje: " + totalWyborow); // Aktualizuj licznik w menu
+
             currentEvent = null;
             eventDialog = null;
         });
-    }    private void ukryjEvent() {
-        if (eventDialog != null) {
-            eventDialog.close();
-            eventDialog = null;
+    }
+
+    // Specjalny event pomocy - sprawdza cechy studenta i pokazuje dialog z wyborami
+    private void pokazEventPomocy() {
+        // Znajdź cechę wymagającą pomocy
+        if (student.getEmpatia() < 30) {
+            // Event pomocy dla niskiej empatii
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Potrzebujesz pomocy!");
+            alert.setHeaderText("Czujesz się samotny i potrzebujesz wsparcia przyjaciół.");
+            alert.setContentText("Poprosić kolegę o pomoc ze sprawozdaniem?");
+            alert.getDialogPane().setStyle("-fx-font-size: 16px;");
+
+            ButtonType tak = new ButtonType("Tak");
+            ButtonType nie = new ButtonType("Nie");
+            alert.getButtonTypes().setAll(tak, nie);
+
+            alert.showAndWait().ifPresent(response -> {
+                if (response == tak) {
+                    if (student.getEmpatia() < 30) {
+                        // Konsekwencje niskiej empatii
+                        Alert konsekwencje = new Alert(Alert.AlertType.INFORMATION);
+                        konsekwencje.setTitle("Konsekwencje decyzji");
+                        konsekwencje.setHeaderText("Kolega odmawia ci pomocy, bo uważa że jesteś chujem.");
+                        konsekwencje.setContentText("Moral: Powinno się pomagać innym, żeby inni pomagali tobie.");
+                        konsekwencje.getDialogPane().setStyle("-fx-font-size: 16px;");
+                        konsekwencje.showAndWait();
+
+                        // Efekt: utrata empatii, wzrost nieczułości
+                        student.changeEmpatia(-5);
+                        student.changeNieczulosc(3);
+
+                        Alert info = new Alert(Alert.AlertType.INFORMATION);
+                        info.setTitle("Skutki decyzji");
+                        info.setHeaderText("Odrzucona prośba o pomoc");
+                        info.setContentText("Konsekwencje: Kolega odmówił, twoje relacje osłabły. Moral: Pracuj nad empatią i wzajemnością.");
+                        info.getDialogPane().setStyle("-fx-font-size: 14px;");
+                        info.showAndWait();
+                    } else {
+                        // Normalny efekt dla wysokiej empatii - dodatkowe korzyści
+                        student.changeUmiejetnoscWspolpracy(3);
+                        student.changeEmpatia(2); // Dodatkowy wzrost empatii
+                        student.changeAsertywnosc(1); // Poprawa asertywności przez pozytywne interakcje
+
+                        Alert info = new Alert(Alert.AlertType.INFORMATION);
+                        info.setTitle("Skutki decyzji");
+                        info.setHeaderText("Kolega chętnie pomaga");
+                        info.setContentText("Konsekwencje: Zyskałeś zaufanie i lepszą współpracę. Moral: Otwartość wzmacnia relacje.");
+                        info.getDialogPane().setStyle("-fx-font-size: 14px;");
+                        info.showAndWait();
+                    }
+                } else {
+                    // Wybór "Nie" - dodatkowe konsekwencje
+                    student.changeUmiejetnoscWspolpracy(-2);
+                    student.changeSamowiadomosc(-1); // Spadek samoświadomości przez unikanie pomocy
+                    student.changeEgocentryzm(2); // Wzrost egocentryzmu przez skupienie na sobie
+
+                    Alert info = new Alert(Alert.AlertType.INFORMATION);
+                    info.setTitle("Skutki decyzji");
+                    info.setHeaderText("Odmówiłeś prośby o pomoc");
+                    info.setContentText("Konsekwencje: Uniknięcie może pogłębić izolację. Moral: Wsparcie buduje relacje.");
+                    info.getDialogPane().setStyle("-fx-font-size: 14px;");
+                    info.showAndWait();
+                }
+            });
+        } else if (student.getSamowiadomosc() < 30) {
+            // Event pomocy dla niskiej samoświadomości
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Potrzebujesz pomocy!");
+            alert.setHeaderText("Nie wiesz jak sobie poradzić z sytuacją.");
+            alert.setContentText("Poprosić o radę doświadczonego kolegę?");
+            alert.getDialogPane().setStyle("-fx-font-size: 16px;");
+
+            ButtonType tak = new ButtonType("Tak");
+            ButtonType nie = new ButtonType("Nie");
+            alert.getButtonTypes().setAll(tak, nie);
+
+            alert.showAndWait().ifPresent(response -> {
+                if (response == tak) {
+                    if (student.getSamowiadomosc() < 30) {
+                        // Konsekwencje niskiej samoświadomości
+                        Alert konsekwencje = new Alert(Alert.AlertType.INFORMATION);
+                        konsekwencje.setTitle("Konsekwencje decyzji");
+                        konsekwencje.setHeaderText("Kolega daje radę, ale krytykuje twoją naiwność.");
+                        konsekwencje.setContentText("Moral: Lepiej być świadomym swoich słabości.");
+                        konsekwencje.getDialogPane().setStyle("-fx-font-size: 16px;");
+                        konsekwencje.showAndWait();
+
+                        // Efekt: wzrost samoświadomości, spadek asertywności
+                        student.changeSamowiadomosc(3);
+                        student.changeAsertywnosc(-2);
+
+                        Alert info = new Alert(Alert.AlertType.INFORMATION);
+                        info.setTitle("Skutki decyzji");
+                        info.setHeaderText("Krytyczna rada");
+                        info.setContentText("Konsekwencje: Otrzymałeś ostrą, ale pomocną krytykę. Moral: Ucz się na feedbacku.");
+                        info.getDialogPane().setStyle("-fx-font-size: 14px;");
+                        info.showAndWait();
+                    } else {
+                        // Normalny efekt - dodatkowe korzyści
+                        student.changeSamowiadomosc(2);
+                        student.changeEmpatia(1); // Poprawa empatii przez lepsze zrozumienie innych
+                        student.changeUmiejetnoscWspolpracy(1); // Lepsza współpraca przez świadomość
+
+                        Alert info = new Alert(Alert.AlertType.INFORMATION);
+                        info.setTitle("Skutki decyzji");
+                        info.setHeaderText("Przyjęta rada");
+                        info.setContentText("Konsekwencje: Czujesz się pewniej i lepiej rozumiesz swoje ograniczenia. Moral: Prośba o radę się opłaca.");
+                        info.getDialogPane().setStyle("-fx-font-size: 14px;");
+                        info.showAndWait();
+                    }
+                } else {
+                    // Wybór "Nie" - dodatkowe konsekwencje
+                    student.changeSamowiadomosc(1);
+                    student.changeAgresja(2); // Wzrost agresji przez frustrację
+                    student.changeNieczulosc(1); // Spadek empatii przez izolację
+
+                    Alert info = new Alert(Alert.AlertType.INFORMATION);
+                    info.setTitle("Skutki decyzji");
+                    info.setHeaderText("Odrzucona pomoc");
+                    info.setContentText("Konsekwencje: Uniknąłeś konfrontacji, ale straciłeś szansę na rozwój. Moral: Czasem warto zaufać innym.");
+                    info.getDialogPane().setStyle("-fx-font-size: 14px;");
+                    info.showAndWait();
+                }
+            });
+        } else if (student.getUmiejetnoscWspolpracy() < 30) {
+            // Event pomocy dla niskiej umiejętności współpracy
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Potrzebujesz pomocy!");
+            alert.setHeaderText("Masz problemy z pracą zespołową.");
+            alert.setContentText("Dołączyć do grupy studyjnej?");
+            alert.getDialogPane().setStyle("-fx-font-size: 16px;");
+
+            ButtonType tak = new ButtonType("Tak");
+            ButtonType nie = new ButtonType("Nie");
+            alert.getButtonTypes().setAll(tak, nie);
+
+            alert.showAndWait().ifPresent(response -> {
+                if (response == tak) {
+                    if (student.getUmiejetnoscWspolpracy() < 30) {
+                        // Konsekwencje niskiej współpracy
+                        Alert konsekwencje = new Alert(Alert.AlertType.INFORMATION);
+                        konsekwencje.setTitle("Konsekwencje decyzji");
+                        konsekwencje.setHeaderText("Grupa nie chce cię przyjąć, bo jesteś zbyt egoistyczny.");
+                        konsekwencje.setContentText("Moral: Współpraca wymaga wzajemności.");
+                        konsekwencje.getDialogPane().setStyle("-fx-font-size: 16px;");
+                        konsekwencje.showAndWait();
+
+                        // Efekt: spadek współpracy, wzrost egocentryzmu
+                        student.changeUmiejetnoscWspolpracy(-3);
+                        student.changeEgocentryzm(4);
+
+                        Alert info = new Alert(Alert.AlertType.INFORMATION);
+                        info.setTitle("Skutki decyzji");
+                        info.setHeaderText("Odrzuceni przez grupę");
+                        info.setContentText("Konsekwencje: Nie dostałeś miejsca w grupie, twoje umiejętności społeczne wymagają pracy. Moral: Współpraca to dwukierunkowa praca.");
+                        info.getDialogPane().setStyle("-fx-font-size: 14px;");
+                        info.showAndWait();
+                    } else {
+                        // Normalny efekt - dodatkowe korzyści
+                        student.changeUmiejetnoscWspolpracy(2);
+                        student.changeEmpatia(1); // Poprawa empatii przez pracę zespołową
+                        student.changeAsertywnosc(1); // Lepsza asertywność w grupie
+
+                        Alert info = new Alert(Alert.AlertType.INFORMATION);
+                        info.setTitle("Skutki decyzji");
+                        info.setHeaderText("Dołączyłeś do grupy");
+                        info.setContentText("Konsekwencje: Zyskałeś doświadczenie w pracy zespołowej i nowe kontakty. Moral: Współpraca rozwija umiejętności.");
+                        info.getDialogPane().setStyle("-fx-font-size: 14px;");
+                        info.showAndWait();
+                    }
+                } else {
+                    // Wybór "Nie" - dodatkowe konsekwencje
+                    student.changeUmiejetnoscWspolpracy(1);
+                    student.changeEgocentryzm(3); // Wzrost egocentryzmu przez unikanie grupy
+                    student.changeAgresja(1); // Lekka frustracja
+
+                    Alert info = new Alert(Alert.AlertType.INFORMATION);
+                    info.setTitle("Skutki decyzji");
+                    info.setHeaderText("Uniknąłeś grupy");
+                    info.setContentText("Konsekwencje: Pozostałeś samodzielny, ale straciłeś okazję do nauki zespołowej. Moral: Czasem warto zaryzykować.");
+                    info.getDialogPane().setStyle("-fx-font-size: 14px;");
+                    info.showAndWait();
+                }
+            });
+        } else if (student.getAsertywnosc() < 30) {
+            // Event pomocy dla niskiej asertywności
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Potrzebujesz pomocy!");
+            alert.setHeaderText("Czujesz się niepewnie w wyrażaniu swoich opinii.");
+            alert.setContentText("Zgłosić swoje pomysły na spotkaniu grupy?");
+            alert.getDialogPane().setStyle("-fx-font-size: 16px;");
+
+            ButtonType tak = new ButtonType("Tak");
+            ButtonType nie = new ButtonType("Nie");
+            alert.getButtonTypes().setAll(tak, nie);
+
+            alert.showAndWait().ifPresent(response -> {
+                if (response == tak) {
+                    if (student.getAsertywnosc() < 30) {
+                        // Konsekwencje niskiej asertywności
+                        Alert konsekwencje = new Alert(Alert.AlertType.INFORMATION);
+                        konsekwencje.setTitle("Konsekwencje decyzji");
+                        konsekwencje.setHeaderText("Próbujesz mówić, ale głos ci drży i nikt cię nie słyszy.");
+                        konsekwencje.setContentText("Moral: Asertywność wymaga praktyki i odwagi.");
+                        konsekwencje.getDialogPane().setStyle("-fx-font-size: 16px;");
+                        konsekwencje.showAndWait();
+
+                        // Efekt: lekki wzrost asertywności, spadek samoświadomości
+                        student.changeAsertywnosc(2);
+                        student.changeSamowiadomosc(-1);
+
+                        Alert info = new Alert(Alert.AlertType.INFORMATION);
+                        info.setTitle("Skutki decyzji");
+                        info.setHeaderText("Próba wyrażenia siebie");
+                        info.setContentText("Konsekwencje: Mimo tremy spróbowałeś — to krok do pewności siebie. Moral: Ćwiczenie przynosi rezultaty.");
+                        info.getDialogPane().setStyle("-fx-font-size: 14px;");
+                        info.showAndWait();
+                    } else {
+                        // Normalny efekt dla wysokiej asertywności - dodatkowe korzyści
+                        student.changeAsertywnosc(3);
+                        student.changeUmiejetnoscWspolpracy(2); // Lepsza współpraca przez pewność siebie
+                        student.changeEmpatia(1); // Poprawa empatii przez słuchanie innych
+
+                        Alert info = new Alert(Alert.AlertType.INFORMATION);
+                        info.setTitle("Skutki decyzji");
+                        info.setHeaderText("Sukces na spotkaniu");
+                        info.setContentText("Konsekwencje: Twoje pomysły zostały docenione — zdobywasz reputację. Moral: Odwaga się opłaca.");
+                        info.getDialogPane().setStyle("-fx-font-size: 14px;");
+                        info.showAndWait();
+                    }
+                } else {
+                    // Wybór "Nie" - dodatkowe konsekwencje
+                    student.changeAsertywnosc(-1);
+                    student.changeEgocentryzm(2); // Wzrost egocentryzmu przez wycofanie
+                    student.changeAgresja(1); // Frustracja wewnętrzna
+
+                    Alert info = new Alert(Alert.AlertType.INFORMATION);
+                    info.setTitle("Skutki decyzji");
+                    info.setHeaderText("Wycofałeś się");
+                    info.setContentText("Konsekwencje: Straciłeś okazję do wpływu na grupę. Moral: Czasem warto spróbować.");
+                    info.getDialogPane().setStyle("-fx-font-size: 14px;");
+                    info.showAndWait();
+                }
+            });
+        } else if (student.getAgresja() > 70) {
+            // Event pomocy dla wysokiej agresji
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Potrzebujesz pomocy!");
+            alert.setHeaderText("Czujesz narastający gniew w trudnej sytuacji.");
+            alert.setContentText("Spróbować uspokoić się i porozmawiać spokojnie?");
+            alert.getDialogPane().setStyle("-fx-font-size: 16px;");
+
+            ButtonType tak = new ButtonType("Tak");
+            ButtonType nie = new ButtonType("Nie");
+            alert.getButtonTypes().setAll(tak, nie);
+
+            alert.showAndWait().ifPresent(response -> {
+                if (response == tak) {
+                    if (student.getAgresja() > 70) {
+                        // Konsekwencje wysokiej agresji
+                        Alert konsekwencje = new Alert(Alert.AlertType.INFORMATION);
+                        konsekwencje.setTitle("Konsekwencje decyzji");
+                        konsekwencje.setHeaderText("Próbujesz się uspokoić, ale słowa same wychodzą ostro.");
+                        konsekwencje.setContentText("Moral: Kontrola gniewu wymaga świadomego wysiłku.");
+                        konsekwencje.getDialogPane().setStyle("-fx-font-size: 16px;");
+                        konsekwencje.showAndWait();
+
+                        // Efekt: spadek agresji, wzrost samoświadomości
+                        student.changeAgresja(-3);
+                        student.changeSamowiadomosc(2);
+
+                        Alert info = new Alert(Alert.AlertType.INFORMATION);
+                        info.setTitle("Skutki decyzji");
+                        info.setHeaderText("Udało się ochłonąć");
+                        info.setContentText("Konsekwencje: Uspokoiłeś się i odzyskałeś kontrolę. Moral: Praca nad gniewem się opłaca.");
+                        info.getDialogPane().setStyle("-fx-font-size: 14px;");
+                        info.showAndWait();
+                    } else {
+                        // Normalny efekt dla niskiej agresji - dodatkowe korzyści
+                        student.changeAgresja(-2);
+                        student.changeEmpatia(2); // Poprawa empatii przez spokój
+                        student.changeAsertywnosc(1); // Lepsza asertywność bez agresji
+
+                        Alert info = new Alert(Alert.AlertType.INFORMATION);
+                        info.setTitle("Skutki decyzji");
+                        info.setHeaderText("Skuteczne uspokojenie");
+                        info.setContentText("Konsekwencje: Utrzymałeś spokój i zyskałeś pozytywną reakcję otoczenia. Moral: Panowanie nad emocjami pomaga.");
+                        info.getDialogPane().setStyle("-fx-font-size: 14px;");
+                        info.showAndWait();
+                    }
+                } else {
+                    // Wybór "Nie" - dodatkowe konsekwencje
+                    student.changeAgresja(2);
+                    student.changeUmiejetnoscWspolpracy(-2); // Problemy w relacjach
+                    student.changeNieczulosc(1); // Spadek empatii
+
+                    Alert info = new Alert(Alert.AlertType.INFORMATION);
+                    info.setTitle("Skutki decyzji");
+                    info.setHeaderText("Zignorowałeś potrzebę uspokojenia");
+                    info.setContentText("Konsekwencje: Złość narasta, a relacje się psują. Moral: Otwarcie się na techniki uspokojenia pomaga.");
+                    info.getDialogPane().setStyle("-fx-font-size: 14px;");
+                    info.showAndWait();
+                }
+            });
         }
-        currentEvent = null;
+
+        // Aktualizuj paski statusu
+        pasekCechPozytywnych.setText(student.getCechyPozytywneStatus());
+        pasekCechNegatywnych.setText(student.getCechyNegatywneStatus());
+    }
+
+    // Strict alert dla krytycznych poziomów cech
+    private void sprawdzStrictAlert() {
+        // Sprawdź czy jakiś poziom jest krytyczny i losuj 45% szansy
+        if (random.nextDouble() < 0.45) {
+            // Negatywne alerty dla niskich pozytywnych i wysokich negatywnych cech
+            if (student.getEmpatia() < 15) {
+                pokazStrictAlert(
+                    "Czujesz się całkowicie odizolowany od świata. Przyjaciele wydają się odlegli, a każda interakcja wywołuje niepokój.",
+                    "Twoja empatia spadła poniżej krytycznego poziomu (poniżej 15). To może prowadzić do poważnych problemów społecznych, depresji i trudności w nawiązywaniu relacji. Rozważ pracę nad umiejętnościami społecznymi lub konsultację ze specjalistą."
+                );
+            } else if (student.getSamowiadomosc() < 15) {
+                pokazStrictAlert(
+                    "Życie wydaje się chaosem. Nie potrafisz ocenić swoich decyzji, a każda porażka uderza z pełną siłą.",
+                    "Twoja samoświadomość osiągnęła krytycznie niski poziom (poniżej 15). Brak refleksji nad własnymi działaniami może prowadzić do błędnych decyzji i chronicznego stresu. Praca nad mindfulness i journaling może pomóc."
+                );
+            } else if (student.getUmiejetnoscWspolpracy() < 15) {
+                pokazStrictAlert(
+                    "Czujesz się jak samotny wilk. Współpraca z innymi wydaje się niemożliwa, a każdy zespół to potencjalne pole bitwy.",
+                    "Twoja umiejętność współpracy spadła poniżej krytycznego poziomu (poniżej 15). To może utrudnić karierę zawodową i relacje interpersonalne. Ćwiczenia z pracy zespołowej i terapia grupowa mogą być pomocne."
+                );
+            } else if (student.getNieczulosc() > 85) {
+                pokazStrictAlert(
+                    "Świat wydaje się wrogi. Emocje innych nie mają znaczenia, a współczucie to słabość.",
+                    "Twoja nieczułość osiągnęła krytycznie wysoki poziom (powyżej 85). Brak empatii może prowadzić do alienacji społecznej i problemów prawnych. Praca nad inteligencją emocjonalną jest niezbędna."
+                );
+            } else if (student.getAgresja() > 85) {
+                pokazStrictAlert(
+                    "Gniew buzuje w Tobie jak wulkan. Każda drobna rzecz może wywołać wybuch.",
+                    "Twoja agresja osiągnęła krytycznie wysoki poziom (powyżej 85). To może prowadzić do przemocy, problemów zdrowotnych i utraty kontroli. Techniki zarządzania gniewem i terapia są pilnie potrzebne."
+                );
+            } else if (student.getEgocentryzm() > 85) {
+                pokazStrictAlert(
+                    "Świat kręci się wokół Ciebie. Potrzeby innych są nieważne, liczy się tylko Twój komfort.",
+                    "Twój egocentryzm osiągnął krytycznie wysoki poziom (powyżej 85). To może zniszczyć relacje i utrudnić współpracę. Praca nad pokorą i empatią jest konieczna."
+                );
+            }
+        }
+
+        // Pozytywne alerty dla wysokich pozytywnych i niskich negatywnych cech
+        if (random.nextDouble() < 0.45) {
+            if (student.getEmpatia() > 85) {
+                pokazPositiveAlert(
+                    "Czujesz głębokie połączenie z innymi. Przyjaciele zawsze szukają Twojej rady i wsparcia.",
+                    "Twoja empatia osiągnęła doskonały poziom (powyżej 85). To pozwala na budowanie silnych relacji, pomaga w życiu społecznym i zwiększa satysfakcję z życia."
+                );
+            } else if (student.getSamowiadomosc() > 85) {
+                pokazPositiveAlert(
+                    "Życie wydaje się klarowne i zrozumiałe. Łatwo oceniasz swoje decyzje i uczysz się na błędach.",
+                    "Twoja samoświadomość osiągnęła doskonały poziom (powyżej 85). Refleksja nad własnymi działaniami prowadzi do lepszych decyzji i zmniejsza stres."
+                );
+            } else if (student.getUmiejetnoscWspolpracy() > 85) {
+                pokazPositiveAlert(
+                    "Czujesz się częścią zespołu. Współpraca z innymi przychodzi naturalnie i przynosi sukces.",
+                    "Twoja umiejętność współpracy osiągnęła doskonały poziom (powyżej 85). To ułatwi karierę zawodową i poprawi relacje interpersonalne."
+                );
+            } else if (student.getAsertywnosc() > 85) {
+                pokazPositiveAlert(
+                    "Wyrażasz swoje potrzeby pewnie i szanujesz innych. Ludzie słuchają Twoich opinii.",
+                    "Twoja asertywność osiągnęła doskonały poziom (powyżej 85). To pozwala na efektywne komunikowanie się i osiąganie celów."
+                );
+            } else if (student.getNieczulosc() < 15) {
+                pokazPositiveAlert(
+                    "Świat wydaje się przyjazny. Emocje innych są ważne, a współczucie przychodzi naturalnie.",
+                    "Twoja nieczułość osiągnęła minimalny poziom (poniżej 15). Wysoka empatia pomaga w relacjach i zmniejsza konflikty."
+                );
+            } else if (student.getAgresja() < 15) {
+                pokazPositiveAlert(
+                    "Czujesz spokój wewnętrzny. Nawet trudne sytuacje nie wywołują gniewu.",
+                    "Twoja agresja osiągnęła minimalny poziom (poniżej 15). Kontrola emocji prowadzi do lepszego zdrowia i relacji."
+                );
+            } else if (student.getEgocentryzm() < 15) {
+                pokazPositiveAlert(
+                    "Świat nie kręci się tylko wokół Ciebie. Potrzeby innych są równie ważne.",
+                    "Twój egocentryzm osiągnął minimalny poziom (poniżej 15). Pokora i empatia budują trwałe relacje."
+                );
+            }
+        }
+    }
+
+    // Pokaż strict alert z częścią fabularną i merytoryczną
+    private void pokazStrictAlert(String czescFabularna, String czescMerytoryczna) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("⚠️ Krytyczna Sytuacja ⚠️");
+        alert.setHeaderText("OSTRZEŻENIE: Krytyczny poziom cechy!");
+        alert.setContentText("**Część fabularna:**\n" + czescFabularna + "\n\n**Część merytoryczna:**\n" + czescMerytoryczna);
+        alert.getDialogPane().setStyle("-fx-font-size: 14px;");
+        alert.showAndWait();
+    }
+
+    // Pokaż positive alert z częścią fabularną i merytoryczną
+    private void pokazPositiveAlert(String czescFabularna, String czescMerytoryczna) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("🎉 Świetny postęp! 🎉");
+        alert.setHeaderText("GRATULACJE: Doskonały poziom cechy!");
+        alert.setContentText("**Część fabularna:**\n" + czescFabularna + "\n\n**Część merytoryczna:**\n" + czescMerytoryczna);
+        alert.getDialogPane().setStyle("-fx-font-size: 14px;");
+        alert.showAndWait();
     }
 
     public static void main(String[] args) {

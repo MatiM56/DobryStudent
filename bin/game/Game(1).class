@@ -1,0 +1,76 @@
+// Source code is decompiled from a .class file using FernFlower decompiler (from Intellij IDEA).
+package game;
+
+import java.util.HashSet;
+import java.util.Set;
+import javafx.application.Application;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.stage.Stage;
+
+public class Game extends Application {
+   private double playerX = 250.0;
+   private double playerY = 250.0;
+   private final double speed = 3.0;
+   private Set<KeyCode> pressedKeys = new HashSet();
+
+   public Game() {
+   }
+
+   public void start(Stage var1) {
+      var1.setTitle("Symulator Studenta - Świat 2D");
+      Canvas var2 = new Canvas(600.0, 400.0);
+      GraphicsContext var3 = var2.getGraphicsContext2D();
+      Scene var4 = new Scene(new StackPane(new Node[]{var2}));
+      var1.setScene(var4);
+      var1.show();
+      var4.setOnKeyPressed((var1x) -> {
+         this.pressedKeys.add(var1x.getCode());
+      });
+      var4.setOnKeyReleased((var1x) -> {
+         this.pressedKeys.remove(var1x.getCode());
+      });
+      (new 1(this, var3)).start();
+   }
+
+   private void update() {
+      if (this.pressedKeys.contains(KeyCode.W)) {
+         this.playerY -= 3.0;
+      }
+
+      if (this.pressedKeys.contains(KeyCode.S)) {
+         this.playerY += 3.0;
+      }
+
+      if (this.pressedKeys.contains(KeyCode.A)) {
+         this.playerX -= 3.0;
+      }
+
+      if (this.pressedKeys.contains(KeyCode.D)) {
+         this.playerX += 3.0;
+      }
+
+      this.playerX = Math.max(10.0, Math.min(590.0, this.playerX));
+      this.playerY = Math.max(10.0, Math.min(390.0, this.playerY));
+   }
+
+   private void render(GraphicsContext var1) {
+      var1.setFill(Color.BEIGE);
+      var1.fillRect(0.0, 0.0, 600.0, 400.0);
+      var1.setFill(Color.DARKGREEN);
+      var1.fillRect(100.0, 100.0, 80.0, 80.0);
+      var1.setFill(Color.GRAY);
+      var1.fillRect(400.0, 150.0, 100.0, 60.0);
+      var1.setFill(Color.BLUE);
+      var1.fillOval(this.playerX - 10.0, this.playerY - 10.0, 20.0, 20.0);
+   }
+
+   public static void main(String[] var0) {
+      launch(new String[0]);
+   }
+}
