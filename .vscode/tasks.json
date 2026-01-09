@@ -1,0 +1,60 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Maven: Clean Compile",
+      "type": "shell",
+      "command": "C:/tools/apache-maven-3.9.9/bin/mvn.cmd",
+      "args": ["clean", "compile"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Maven: Run JavaFX App",
+      "type": "shell",
+      "command": "C:/tools/apache-maven-3.9.9/bin/mvn.cmd",
+      "args": ["javafx:run"],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true
+      }
+    },
+    {
+      "label": "Maven: Build Runtime Image",
+      "type": "shell",
+      "command": "C:/tools/apache-maven-3.9.9/bin/mvn.cmd",
+      "args": ["clean", "javafx:jlink", "-DskipTests"],
+      "group": "none",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Run Runtime Image",
+      "type": "shell",
+      "command": "${workspaceFolder}/target/image/bin/student-simulator.bat",
+      "args": [],
+      "group": "none",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    }
+  ]
+}

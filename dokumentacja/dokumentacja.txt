@@ -1,0 +1,51 @@
+DOKUMENTACJA PROJEKTU
+=====================
+
+=== PLIK: src\game\Game.java ===
+METODA/KLASA: public class Game extends Application
+OPIS:
+Główna klasa aplikacji gry "Symulator Studenta".
+Odpowiada za inicjalizację interfejsu graficznego (JavaFX),
+zarządzanie stanem gry oraz obsługę zdarzeń użytkownika.
+----------------------------------------
+
+
+
+=== PLIK: src\model\Event.java ===
+METODA/KLASA: public class Event
+OPIS:
+Klasa reprezentująca pojedyncze zdarzenie (event) w grze.
+Przechowuje opis sytuacji, możliwe wybory gracza (pozytywny/negatywny)
+oraz skutki tych wyborów wpływające na cechy studenta.
+----------------------------------------
+METODA/KLASA: private final String situation
+OPIS:
+Opis sytuacji/zdarzenia.
+----------------------------------------
+METODA/KLASA: private final String positiveChoice
+OPIS:
+Tekst wyboru pozytywnego.
+----------------------------------------
+METODA/KLASA: private final String negativeChoice
+OPIS:
+Tekst wyboru negatywnego.
+----------------------------------------
+METODA/KLASA: private final int[] positiveEffects
+OPIS:
+Tablica zmian cech dla wyboru pozytywnego.
+----------------------------------------
+METODA/KLASA: private final int[] negativeEffects
+OPIS:
+Tablica zmian cech dla wyboru negatywnego.
+----------------------------------------
+
+
+
+=== PLIK: src\model\Student.java ===
+METODA/KLASA: public class Student
+OPIS:
+Klasa reprezentująca studenta w symulacji.
+Przechowuje stan cech psychicznych studenta oraz metody do ich modyfikacji.
+----------------------------------------
+
+

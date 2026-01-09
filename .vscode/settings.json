@@ -1,0 +1,14 @@
+{
+  "java.compile.nullAnalysis.mode": "automatic",
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.maven.downloadSources": true,
+  "java.maven.downloadJavadoc": true,
+  "java.configuration.runtimes": [
+    {
+      "name": "JavaSE-21",
+      "path": "C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.6.7-hotspot",
+      "default": true
+    }
+  ],
+  "java.debug.settings.onBuildFailureProceed": true
+}
