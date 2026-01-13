@@ -110,11 +110,7 @@ public class Game extends Application {
     private int graczX = 5;
     /** Pozycja Y gracza na siatce mapy. */
     private int graczY = 5;
-    
-    /** Szerokość mapy wyrażona w liczbie kafelków. */
-    private final int mapaSzerokoscKafelki = 42;  
-    /** Wysokość mapy wyrażona w liczbie kafelków. */
-    private final int mapaWysokoscKafelki = 32;   
+     
     
     /** Kolumna, w której znajduje się ściana (element mapy). */
     private final int scianaKolumna = 25;
