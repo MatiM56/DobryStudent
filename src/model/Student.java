@@ -47,47 +47,100 @@ public class Student {
     public void setUmiejetnoscWspolpracy(int v) { umiejetnoscWspolpracy = Math.max(0, Math.min(100, v)); }
     public void setAgresja(int v) { agresja = Math.max(0, Math.min(100, v)); }
 
-    // Metody dla nowych cech
+    /**
+     * Zmienia poziom empatii o zadaną wartość.
+     * Wynik jest ograniczony do przedziału [0, 100].
+     * @param value Wartość zmiany (dodatnia lub ujemna).
+     */
     public void changeEmpatia(int value) {
         empatia = Math.max(0, Math.min(100, empatia + value));
     }
 
+    /**
+     * Zmienia poziom nieczułości o zadaną wartość.
+     * Wynik jest ograniczony do przedziału [0, 100].
+     * @param value Wartość zmiany (dodatnia lub ujemna).
+     */
     public void changeNieczulosc(int value) {
         nieczulosc = Math.max(0, Math.min(100, nieczulosc + value));
     }
 
+    /**
+     * Zmienia poziom asertywności o zadaną wartość.
+     * Wynik jest ograniczony do przedziału [0, 100].
+     * @param value Wartość zmiany (dodatnia lub ujemna).
+     */
     public void changeAsertywnosc(int value) {
         asertywnosc = Math.max(0, Math.min(100, asertywnosc + value));
     }
 
+    /**
+     * Zmienia poziom uległości o zadaną wartość.
+     * Wynik jest ograniczony do przedziału [0, 100].
+     * @param value Wartość zmiany (dodatnia lub ujemna).
+     */
     public void changeUleglosc(int value) {
         uleglosc = Math.max(0, Math.min(100, uleglosc + value));
     }
 
+    /**
+     * Zmienia poziom samoświadomości o zadaną wartość.
+     * Wynik jest ograniczony do przedziału [0, 100].
+     * @param value Wartość zmiany (dodatnia lub ujemna).
+     */
     public void changeSamowiadomosc(int value) {
         samowiadomosc = Math.max(0, Math.min(100, samowiadomosc + value));
     }
 
+    /**
+     * Zmienia poziom egocentryzmu o zadaną wartość.
+     * Wynik jest ograniczony do przedziału [0, 100].
+     * @param value Wartość zmiany (dodatnia lub ujemna).
+     */
     public void changeEgocentryzm(int value) {
         egocentryzm = Math.max(0, Math.min(100, egocentryzm + value));
     }
 
+    /**
+     * Zmienia poziom samoregulacji o zadaną wartość.
+     * Wynik jest ograniczony do przedziału [0, 100].
+     * @param value Wartość zmiany (dodatnia lub ujemna).
+     */
     public void changeSamoregulacja(int value) {
         samoregulacja = Math.max(0, Math.min(100, samoregulacja + value));
     }
 
+    /**
+     * Zmienia poziom impulsywności o zadaną wartość.
+     * Wynik jest ograniczony do przedziału [0, 100].
+     * @param value Wartość zmiany (dodatnia lub ujemna).
+     */
     public void changeImpulsywnosc(int value) {
         impulsywnosc = Math.max(0, Math.min(100, impulsywnosc + value));
     }
 
+    /**
+     * Zmienia poziom umiejętności współpracy o zadaną wartość.
+     * Wynik jest ograniczony do przedziału [0, 100].
+     * @param value Wartość zmiany (dodatnia lub ujemna).
+     */
     public void changeUmiejetnoscWspolpracy(int value) {
         umiejetnoscWspolpracy = Math.max(0, Math.min(100, umiejetnoscWspolpracy + value));
     }
 
+    /**
+     * Zmienia poziom agresji o zadaną wartość.
+     * Wynik jest ograniczony do przedziału [0, 100].
+     * @param value Wartość zmiany (dodatnia lub ujemna).
+     */
     public void changeAgresja(int value) {
         agresja = Math.max(0, Math.min(100, agresja + value));
     }
 
+    /**
+     * Zwraca sformatowany ciąg tekstowy ze wszystkimi cechami studenta.
+     * @return String zawierający w dwóch liniach zestawienie cech pozytywnych i negatywnych.
+     */
     public String getCechyStatus() {
         return String.format(
             "Empatia: %d | Asertywność: %d | Samoświadomość: %d | Samoregulacja: %d | Współpraca: %d\nNieczułość: %d | Uległość: %d | Egocentryzm: %d | Impulsywność: %d | Agresja: %d",
@@ -96,6 +149,10 @@ public class Student {
         );
     }
 
+    /**
+     * Zwraca sformatowany ciąg tekstowy z cechami pozytywnymi.
+     * @return String z listą cech pozytywnych.
+     */
     public String getCechyPozytywneStatus() {
         return String.format(
             "Empatia: %d | Asertywność: %d | Samoświadomość: %d | Samoregulacja: %d | Współpraca: %d",
@@ -103,6 +160,10 @@ public class Student {
         );
     }
 
+    /**
+     * Zwraca sformatowany ciąg tekstowy z cechami negatywnymi.
+     * @return String z listą cech negatywnych.
+     */
     public String getCechyNegatywneStatus() {
         return String.format(
             "Nieczułość: %d | Uległość: %d | Egocentryzm: %d | Impulsywność: %d | Agresja: %d",

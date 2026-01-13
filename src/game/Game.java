@@ -61,48 +61,88 @@ public class Game extends Application {
     /** Komponent wyświetlający obraz graficzny studenta. */
     private ImageView obrazGracza = new ImageView(new Image(Game.class.getResource("/resources/student.png").toExternalForm()));
     
+    /** Aktualnie trwające zdarzenie w grze. */
     private Event currentEvent = null;
+    /** Okno dialogowe wyświetlające opcje zdarzenia. */
     private Alert eventDialog = null;
+    /** Główny panel mapy, na którym rysowane są elementy gry. */
     private Pane panelMapy;
+    /** Zbiór aktualnie wciśniętych klawiszy, służący do sterowania ruchem. */
     private final Set<KeyCode> wcisnieteKlawisze = new HashSet<>();
+    /** Flaga określająca, czy gracz jest w trakcie ruchu. */
     private boolean czyRuszaSie = false;
     
+    /** Mapa przechowująca czasy odnowienia dla poszczególnych aktywności. */
     private final java.util.Map<String, Integer> cooldowns = new java.util.HashMap<>();
+    /** Domyślny czas odnowienia aktywności (w krokach/cyklach). */
     private static final int DEFAULT_COOLDOWN = 15; 
 
+    /** Licznik wszystkich wyborów dokonanych przez gracza. */
     private int totalWyborow = 0; 
+    /** Generator liczb losowych używany w grze. */
     private final Random random = new Random();
     
+    /** Flaga określająca, czy muzyka w tle jest włączona. */
     private boolean muzykaWlaczona = true;
+    /** Aktualny poziom głośności muzyki (0.0 - 1.0). */
     private double glosnosc = 0; 
+    /** Odtwarzacz multimedialny do obsługi muzyki w tle. */
     private MediaPlayer mediaPlayer; 
+    /** Panel menu zawierający przyciski sterujące grą. */
     private HBox panelMenu;
+    /** Przycisk rozpoczynający nową grę. */
     private Button przyciskNowaGra;
+    /** Przycisk zapisujący stan gry. */
     private Button przyciskZapisz;
+    /** Lista rozwijana służąca do wyboru zapisu gry do wczytania. */
     private ComboBox<String> comboBoxWczytaj;
+    /** Przycisk włączający/wyłączający muzykę. */
     private Button przyciskMuzyka; 
+    /** Suwak do regulacji głośności. */
     private Slider suwakGlosnosci;
+    /** Etykieta wyświetlająca liczbę podjętych decyzji. */
     private Label licznikDecyzji; 
 
+    /** Rozmiar pojedynczego kafelka mapy w pikselach. */
     private final int rozmiarKafelka = 50;
     
+    /** Pozycja X gracza na siatce mapy. */
     private int graczX = 5;
+    /** Pozycja Y gracza na siatce mapy. */
     private int graczY = 5;
     
+    /** Szerokość mapy wyrażona w liczbie kafelków. */
     private final int mapaSzerokoscKafelki = 42;  
+    /** Wysokość mapy wyrażona w liczbie kafelków. */
     private final int mapaWysokoscKafelki = 32;   
     
+    /** Kolumna, w której znajduje się ściana (element mapy). */
     private final int scianaKolumna = 25;
+    /** Rząd, w którym znajduje się ściana (element mapy). */
     private final int scianaRzad = 9;
     
+    /** Tablica definiująca obszar łóżka na mapie [minX, minY, maxX, maxY]. */
     private final int[] zakresLozka = {8, 6, 10, 8};
+    /** Tablica definiująca obszar biblioteki na mapie [minX, minY, maxX, maxY]. */
     private final int[] zakresBiblioteki = {20, 2, 23, 4};
+    /** Tablica definiująca obszar Politechniki Wrocławskiej na mapie [minX, minY, maxX, maxY]. */
     private final int[] zakresKwadratowej = {19, 0, 24, 1};
+    /** Tablica definiująca obszar miejsca pracy na mapie [minX, minY, maxX, maxY]. */
     private final int[] zakresPracy = {13, 6, 17, 8};
+    /** Tablica definiująca obszar uczelni na mapie [minX, minY, maxX, maxY]. */
     private final int[] zakresUczelni = {0, 0, 6, 2};
+    /** Tablica definiująca obszar sklepu (Biedronki) na mapie [minX, minY, maxX, maxY]. */
     private final int[] zakresBiedronki = {11, 0, 14, 0};
+    /** Tablica definiująca obszar centrum sportowego (CSA) na mapie [minX, minY, maxX, maxY]. */
     private final int[] zakresCSA = {19, 5, 24, 8};
+    /** Tablica definiująca obszar przystanku autobusowego na mapie [minX, minY, maxX, maxY]. */
     private final int[] zakresAutobusu = {0,6 , 4, 7};
+    /**
+     * Główna metoda startowa aplikacji JavaFX.
+     * Inicjalizuje okno, scenę, komponenty graficzne, mapę oraz obsługę zdarzeń.
+     *
+     * @param stage Główny kontener (okno) aplikacji.
+     */
     @Override
     public void start(Stage stage) {
         System.out.println("Starting game...");
@@ -120,6 +160,8 @@ public class Game extends Application {
 
         panelMapy = new Pane();
         panelMapy.setPrefSize(szerokoscEkranu, wysokoscEkranu);
+        
+        /* ... istniejący kod ... */
 
         ImageView tloMapy;
         try {
@@ -247,6 +289,10 @@ public class Game extends Application {
         panelMapy.requestFocus(); 
     }
 
+    /**
+     * Obsługuje logikę ruchu gracza w oparciu o wciśnięte klawisze.
+     * Aktualizuje pozycję gracza, jeśli ruch jest dozwolony, oraz zmniejsza cooldowny aktywności.
+     */
     private void obsluzRuch() {
         int nowyX = graczX;
         int nowyY = graczY;
@@ -282,6 +328,13 @@ public class Game extends Application {
         }
     }
 
+    /**
+     * Sprawdza, czy podana pozycja mieści się w granicach mapy i nie jest przeszkodą.
+     *
+     * @param kafelekX Współrzędna X kafelka.
+     * @param kafelekY Współrzędna Y kafelka.
+     * @return true, jeśli pozycja jest poprawna, false w przeciwnym razie.
+     */
     private boolean czyPozycjaPoprawna(int kafelekX, int kafelekY) {
         if (kafelekX < 0 || kafelekY < 0) {
             return false;
@@ -298,6 +351,10 @@ public class Game extends Application {
         return true;
     }
 
+    /**
+     * Obsługuje interakcję gracza z otoczeniem (klawisz E).
+     * Sprawdza, czy gracz znajduje się w strefie aktywności i jeśli tak, uruchamia odpowiednie zdarzenie.
+     */
     private void obsluzInterakcje() {
         Event.ActivityType aktywnosc = null;
         if (czyWmiejscuAktywnosci(zakresLozka)) {
@@ -335,12 +392,21 @@ public class Game extends Application {
         }
     }
 
+    /**
+     * Aktualizuje graficzną pozycję gracza na ekranie na podstawie współrzędnych siatki.
+     */
     private void ustawPozycjeGracza() {
         obrazGracza.setX(graczX * rozmiarKafelka);
         obrazGracza.setY(graczY * rozmiarKafelka);
         obrazGracza.toFront(); 
     }
 
+    /**
+     * Sprawdza, czy gracz znajduje się w określonym obszarze aktywności.
+     *
+     * @param obszar Tablica 4-elementowa definiująca prostokąt [xStart, yStart, xEnd, yEnd].
+     * @return true, jeśli gracz znajduje się wewnątrz obszaru.
+     */
     private boolean czyWmiejscuAktywnosci(int[] obszar) {
         int xStart = obszar[0];
         int yStart = obszar[1];
@@ -351,6 +417,12 @@ public class Game extends Application {
                graczY >= yStart && graczY <= yEnd;
     }
 
+    /**
+     * Wykonuje logikę danej aktywności na obiekcie studenta i aktualizuje interfejs.
+     *
+     * @param aktywnosc Obiekt aktywności do wykonania.
+     * @param tekstAkcji Tekst do wyświetlenia w pasku statusu.
+     */
     private void wykonajAkcje(ActivityType aktywnosc, String tekstAkcji) {
         pasekCechPozytywnych.setText(tekstAkcji);
         aktywnosc.wykonaj(student);
@@ -362,6 +434,9 @@ public class Game extends Application {
     }
 
 
+    /**
+     * Rozpoczyna nową grę. Resetuje pozycję gracza, statystyki studenta oraz licznik decyzji.
+     */
     private void nowaGra() {
         graczX = 5;
         graczY = 5;
@@ -376,6 +451,10 @@ public class Game extends Application {
         System.out.println("Rozpoczęto nową grę");
     }
 
+    /**
+     * Szuka pierwszego wolnego slotu zapisu (1-5) i zapisuje grę.
+     * Jeśli wszystkie sloty są zajęte, nadpisuje slot nr 1.
+     */
     private void zapiszGre() {
         for (int i = 1; i <= 5; i++) {
             String nazwaPliku = "save" + i + ".txt";
@@ -389,6 +468,12 @@ public class Game extends Application {
         odswiezListeZapisow();
     }
 
+    /**
+     * Zapisuje stan gry do pliku tekstowego odpowiadającego podanemu slotowi.
+     * Zapisywane dane to: pozycja, ustawienia dźwięku, liczba wyborów oraz cechy studenta.
+     * 
+     * @param slot Numer slotu zapisu (zwykle 1-5).
+     */
     private void zapiszDoSlotu(int slot) {
         String nazwaPliku = "save" + slot + ".txt";
         try (FileWriter writer = new FileWriter(nazwaPliku)) {
@@ -409,6 +494,10 @@ public class Game extends Application {
         }
     }
 
+    /**
+     * Obsługuje proces wczytywania gry wybrany z listy rozwijanej (ComboBox).
+     * Parsuje wybrany element UI, aby wydobyć numer slotu.
+     */
     private void wczytajGre() {
         String wybranySlot = comboBoxWczytaj.getValue();
         if (wybranySlot == null || wybranySlot.isEmpty()) {
@@ -434,6 +523,12 @@ public class Game extends Application {
         wczytajZeSlotu(slot);
     }
 
+    /**
+     * Odczytuje stan gry z pliku i przywraca stan aplikacji.
+     * Wczytuje pozycję, ustawienia, statystyki oraz cechy studenta.
+     * 
+     * @param slot Numer slotu do wczytania.
+     */
     private void wczytajZeSlotu(int slot) {
         String nazwaPliku = "save" + slot + ".txt";
         try (BufferedReader br = new BufferedReader(new FileReader(nazwaPliku))) {
@@ -477,12 +572,19 @@ public class Game extends Application {
         }
     }
 
+    /**
+     * Ustawia głośność odtwarzacza muzyki na podstawie wartości zmiennej glosnosc.
+     */
     private void aktualizujGlosnosc() {
         if (mediaPlayer != null) {
             mediaPlayer.setVolume(glosnosc);
         }
     }
 
+    /**
+     * Aktualizuje listę dostępnych zapisów w ComboBoxie.
+     * Sprawdza fizyczną obecność plików save1.txt - save5.txt.
+     */
     private void odswiezListeZapisow() {
         comboBoxWczytaj.getItems().clear();
         for (int i = 1; i <= 5; i++) { 
@@ -495,6 +597,9 @@ public class Game extends Application {
         }
     }
 
+    /**
+     * Inicjalizuje odtwarzacz muzyki, ładując plik resources/background_music.mp3.
+     */
     private void inicjalizujMuzyke() {
         try {
             String muzykaPath = getClass().getResource("/resources/background_music.mp3").toString();
@@ -517,6 +622,9 @@ public class Game extends Application {
         }
     }
 
+    /**
+     * Przełącza stan odtwarzania muzyki (włącz/wyłącz) i aktualizuje ikonę przycisku.
+     */
     private void przelaczMuzyke() {
         if (mediaPlayer != null) {
             if (muzykaWlaczona) {
@@ -534,9 +642,18 @@ public class Game extends Application {
         aktualizujGlosnosc();
     }
 
+    /**
+     * Metoda placeholder do inicjalizacji komponentów zdarzeń (obecnie pusta).
+     */
     private void inicjalizujKomponentyEventow() {
     }
 
+    /**
+     * Wyświetla okno dialogowe z bieżącym wydarzeniem losowym.
+     * Umożliwia graczowi wybór jednej z dwóch opcji (pozytywnej lub negatywnej).
+     *
+     * @param event Obiekt zdarzenia do wyświetlenia.
+     */
     private void pokazEvent(Event event) {
         currentEvent = event;
 
@@ -557,12 +674,12 @@ public class Game extends Application {
 
         eventDialog.getButtonTypes().setAll(positiveButton, negativeButton);
 
-        eventDialog.getDialogPane().setStyle("-fx-base: #e0e0e0; -fx-background-color: #f5f5f5; -fx-font-size: 11px;");
+        eventDialog.getDialogPane().setStyle("-fx-base: #e0e0e0; -fx-background-color: #f5f5f5; -fx-font-size: 14px;");
         eventDialog.getDialogPane().getStylesheets().clear();
 
         eventDialog.getDialogPane().setHeaderText(event.getSituation()); 
         if (eventDialog.getDialogPane().lookup(".header-panel") != null) {
-            eventDialog.getDialogPane().lookup(".header-panel").setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+            eventDialog.getDialogPane().lookup(".header-panel").setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
         }
 
         eventDialog.showAndWait().ifPresent(response -> {
@@ -577,7 +694,7 @@ public class Game extends Application {
             feedbackAlert.setTitle("Wynik decyzji");
             feedbackAlert.setHeaderText(null);
             feedbackAlert.setContentText(wynikWiadomosc);
-            feedbackAlert.getDialogPane().setStyle("-fx-font-size: 11px;");
+            feedbackAlert.getDialogPane().setStyle("-fx-font-size: 14px;");
             feedbackAlert.showAndWait();
 
             sprawdzStrictAlert();
@@ -593,13 +710,17 @@ public class Game extends Application {
         });
     }
 
+    /**
+     * Wyświetla specjalne wydarzenie pomocowe, gdy statystyki studenta są na niskim poziomie.
+     * Oferuje wybory mające na celu poprawę krytycznych cech.
+     */
     private void pokazEventPomocy() {
         if (student.getEmpatia() < 30) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Potrzebujesz pomocy!");
             alert.setHeaderText("Czujesz się samotny i potrzebujesz wsparcia przyjaciół.");
             alert.setContentText("Poprosić kolegę o pomoc ze sprawozdaniem?");
-            alert.getDialogPane().setStyle("-fx-font-size: 11px;");
+            alert.getDialogPane().setStyle("-fx-font-size: 14px;");
 
             ButtonType tak = new ButtonType("Tak");
             ButtonType nie = new ButtonType("Nie");
@@ -612,7 +733,7 @@ public class Game extends Application {
                         konsekwencje.setTitle("Konsekwencje decyzji");
                         konsekwencje.setHeaderText("Kolega odmawia ci pomocy, bo uważa że jesteś chujem.");
                         konsekwencje.setContentText("Moral: Powinno się pomagać innym, żeby inni pomagali tobie.");
-                        konsekwencje.getDialogPane().setStyle("-fx-font-size: 11px;");
+                        konsekwencje.getDialogPane().setStyle("-fx-font-size: 14px;");
                         konsekwencje.showAndWait();
 
                         student.changeEmpatia(-5);
@@ -622,7 +743,7 @@ public class Game extends Application {
                         info.setTitle("Skutki decyzji");
                         info.setHeaderText("Odrzucona prośba o pomoc");
                         info.setContentText("Konsekwencje: Kolega odmówił, twoje relacje osłabły. Moral: Pracuj nad empatią i wzajemnością.");
-                        info.getDialogPane().setStyle("-fx-font-size: 11px;");
+                        info.getDialogPane().setStyle("-fx-font-size: 14px;");
                         info.showAndWait();
                     } else {
                         student.changeUmiejetnoscWspolpracy(3);
@@ -633,7 +754,7 @@ public class Game extends Application {
                         info.setTitle("Skutki decyzji");
                         info.setHeaderText("Kolega chętnie pomaga");
                         info.setContentText("Konsekwencje: Zyskałeś zaufanie i lepszą współpracę. Moral: Otwartość wzmacnia relacje.");
-                        info.getDialogPane().setStyle("-fx-font-size: 11px;");
+                        info.getDialogPane().setStyle("-fx-font-size: 14px;");
                         info.showAndWait();
                     }
                 } else {
@@ -645,7 +766,7 @@ public class Game extends Application {
                     info.setTitle("Skutki decyzji");
                     info.setHeaderText("Odmówiłeś prośby o pomoc");
                     info.setContentText("Konsekwencje: Uniknięcie może pogłębić izolację. Moral: Wsparcie buduje relacje.");
-                    info.getDialogPane().setStyle("-fx-font-size: 11px;");
+                    info.getDialogPane().setStyle("-fx-font-size: 14px;");
                     info.showAndWait();
                 }
             });
@@ -654,7 +775,7 @@ public class Game extends Application {
             alert.setTitle("Potrzebujesz pomocy!");
             alert.setHeaderText("Nie wiesz jak sobie poradzić z sytuacją.");
             alert.setContentText("Poprosić o radę doświadczonego kolegę?");
-            alert.getDialogPane().setStyle("-fx-font-size: 11px;");
+            alert.getDialogPane().setStyle("-fx-font-size: 14px;");
 
             ButtonType tak = new ButtonType("Tak");
             ButtonType nie = new ButtonType("Nie");
@@ -667,7 +788,7 @@ public class Game extends Application {
                         konsekwencje.setTitle("Konsekwencje decyzji");
                         konsekwencje.setHeaderText("Kolega daje radę, ale krytykuje twoją naiwność.");
                         konsekwencje.setContentText("Moral: Lepiej być świadomym swoich słabości.");
-                        konsekwencje.getDialogPane().setStyle("-fx-font-size: 11px;");
+                        konsekwencje.getDialogPane().setStyle("-fx-font-size: 14px;");
                         konsekwencje.showAndWait();
 
                         student.changeSamowiadomosc(3);
@@ -677,7 +798,7 @@ public class Game extends Application {
                         info.setTitle("Skutki decyzji");
                         info.setHeaderText("Krytyczna rada");
                         info.setContentText("Konsekwencje: Otrzymałeś ostrą, ale pomocną krytykę. Moral: Ucz się na feedbacku.");
-                        info.getDialogPane().setStyle("-fx-font-size: 11px;");
+                        info.getDialogPane().setStyle("-fx-font-size: 14px;");
                         info.showAndWait();
                     } else {
                         student.changeSamowiadomosc(2);
@@ -688,7 +809,7 @@ public class Game extends Application {
                         info.setTitle("Skutki decyzji");
                         info.setHeaderText("Przyjęta rada");
                         info.setContentText("Konsekwencje: Czujesz się pewniej i lepiej rozumiesz swoje ograniczenia. Moral: Prośba o radę się opłaca.");
-                        info.getDialogPane().setStyle("-fx-font-size: 11px;");
+                        info.getDialogPane().setStyle("-fx-font-size: 14px;");
                         info.showAndWait();
                     }
                 } else {
@@ -700,7 +821,7 @@ public class Game extends Application {
                     info.setTitle("Skutki decyzji");
                     info.setHeaderText("Odrzucona pomoc");
                     info.setContentText("Konsekwencje: Uniknąłeś konfrontacji, ale straciłeś szansę na rozwój. Moral: Czasem warto zaufać innym.");
-                    info.getDialogPane().setStyle("-fx-font-size: 11px;");
+                    info.getDialogPane().setStyle("-fx-font-size: 14px;");
                     info.showAndWait();
                 }
             });
@@ -875,6 +996,10 @@ public class Game extends Application {
         pasekCechNegatywnych.setText(student.getCechyNegatywneStatus());
     }
 
+    /**
+     * Sprawdza, czy którakolwiek z cech osiągnęła poziom krytyczny (bardzo niski lub bardzo wysoki).
+     * Jeśli tak, wyświetla odpowiedni komunikat ostrzegawczy z poradą.
+     */
     private void sprawdzStrictAlert() {
         if (random.nextDouble() < 0.45) {
             if (student.getEmpatia() < 15) {
@@ -950,6 +1075,9 @@ public class Game extends Application {
         }
     }
 
+    /**
+     * Wyświetla ostrzeżenie o krytycznym stanie cechy.
+     */
     private void pokazStrictAlert(String czescFabularna, String czescMerytoryczna) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("⚠️ Krytyczna Sytuacja ⚠️");
@@ -959,6 +1087,9 @@ public class Game extends Application {
         alert.showAndWait();
     }
 
+    /**
+     * Wyświetla gratulacje po osiągnięciu pozytywnego, wysokiego poziomu cechy.
+     */
     private void pokazPositiveAlert(String czescFabularna, String czescMerytoryczna) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("🎉 Świetny postęp! 🎉");
@@ -968,6 +1099,10 @@ public class Game extends Application {
         alert.showAndWait();
     }
 
+    /**
+     * Punkt wejścia aplikacji. Uruchamia środowisko JavaFX.
+     * @param args Argumenty wiersza poleceń.
+     */
     public static void main(String[] args) {
         launch();
     }

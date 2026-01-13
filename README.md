@@ -33,6 +33,15 @@ Gra serious game w języku Java z wykorzystaniem JavaFX, mająca na celu podnie�
 - **E** - Interakcja z obiektami w okolicy
 - **Menu dolne** - Kontrola gry, zapisywanie, muzyka
 
+## Dokumentacja
+
+Pełna dokumentacja techniczna wygenerowana za pomocą narzędzia Javadoc dostępna jest w folderze:
+`dokumentacja/apidocs/index.html`
+
+Aby ją otworzyć:
+1. Przejdź do folderu `dokumentacja/apidocs/`.
+2. Otwórz plik `index.html` w dowolnej przeglądarce internetowej.
+
 ## Technologie
 
 - **Java 21** - Język programowania

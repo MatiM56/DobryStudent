@@ -25,7 +25,7 @@ public class Spanie extends Event.ActivityType {
                 "Poranna frustracja",
                 "Wstajesz i rozmawiasz o tym z współlokatorami",
                 "Wstajesz i czepiasz się wszystkich dookoła",
-                new int[]{0, 0, 0, 0, 0, 4, 0, 0, 0, -3}, // +samoregulacja, -agresja
+                new int[]{0, 0, 0, 0, 0, 0, 4, 0, 0, -3}, // +samoregulacja, -agresja
                 new int[]{0, 0, 0, 0, 0, 0, 0, 5, 0, 4}   // +impulsywnosc, +agresja
             )
         ));
