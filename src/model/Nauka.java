@@ -25,7 +25,7 @@ public class Nauka extends Event.ActivityType {
                 "Ktoś prosi o pomoc z materiałem",
                 "Tłumaczysz cierpliwie",
                 "Ignorujesz i mówisz że sam musiałeś sobie radzić",
-                new int[]{5, 0, 0, 0, 0, 0, 4, 0, 0, 0}, // +empatia, +samoregulacja
+                new int[]{5, 0, 0, 0, 0, 0, 4, -4, 0, 0}, // +empatia, +samoregulacja, -impulsywnosc
                 new int[]{0, 0, 0, 0, 0, 0, 0, 3, 0, 0}   // +impulsywnosc, +nieczulosc
             )
         ));

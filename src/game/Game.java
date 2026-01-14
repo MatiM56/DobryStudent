@@ -74,6 +74,8 @@ public class Game extends Application {
     
     /** Mapa przechowująca czasy odnowienia dla poszczególnych aktywności. */
     private final java.util.Map<String, Integer> cooldowns = new java.util.HashMap<>();
+    /** Mapa przechowująca kiedy ostatnio wystąpiło dane zdarzenie pomocy. */
+    private final java.util.Map<String, Integer> ostatnieZdarzeniaPomocy = new java.util.HashMap<>();
     /** Domyślny czas odnowienia aktywności (w krokach/cyklach). */
     private static final int DEFAULT_COOLDOWN = 15; 
 
@@ -156,6 +158,7 @@ public class Game extends Application {
 
         panelMapy = new Pane();
         panelMapy.setPrefSize(szerokoscEkranu, wysokoscEkranu);
+        panelMapy.setFocusTraversable(true);
         
         /* ... istniejący kod ... */
 
@@ -263,16 +266,22 @@ public class Game extends Application {
         widok.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.F1) {
                 pokazEventPomocy();
+                panelMapy.requestFocus();
+                event.consume();
                 return;
-            }
-            wcisnieteKlawisze.add(event.getCode());
-            
-            if (!czyRuszaSie) {
-                obsluzRuch();
             }
 
             if (event.getCode() == KeyCode.E) {
                 obsluzInterakcje();
+                panelMapy.requestFocus();
+                event.consume();
+                return;
+            }
+
+            wcisnieteKlawisze.add(event.getCode());
+            
+            if (!czyRuszaSie) {
+                obsluzRuch();
             }
         });
 
@@ -445,6 +454,7 @@ public class Game extends Application {
         
         pasekCechPozytywnych.setText("Rozpoczęto nową grę! Stan studenta zresetowany.");
         System.out.println("Rozpoczęto nową grę");
+        panelMapy.requestFocus();
     }
 
     /**
@@ -562,6 +572,7 @@ public class Game extends Application {
             
             pasekCechPozytywnych.setText("Gra została wczytana ze slotu " + slot + "!");
             System.out.println("Gra została wczytana z " + nazwaPliku);
+            panelMapy.requestFocus();
         } catch (IOException | NumberFormatException e) {
             pasekCechPozytywnych.setText("Błąd podczas wczytywania gry ze slotu " + slot + "!");
             System.out.println("Błąd wczytywania: " + e.getMessage());
@@ -636,6 +647,7 @@ public class Game extends Application {
             pasekCechPozytywnych.setText("Muzyka nie jest dostępna - dodaj plik background_music.mp3 do src/resources!");
         }
         aktualizujGlosnosc();
+        panelMapy.requestFocus();
     }
 
     /**
@@ -653,11 +665,10 @@ public class Game extends Application {
     private void pokazEvent(Event event) {
         currentEvent = event;
 
-        if (totalWyborow >= 10 && random.nextDouble() < 0.45 &&
-            (student.getEmpatia() < 30 || student.getSamowiadomosc() < 30 || student.getUmiejetnoscWspolpracy() < 30 ||
-             student.getAsertywnosc() < 30 || student.getAgresja() > 70 || student.getNieczulosc() > 70 || student.getEgocentryzm() > 70)) {
-            pokazEventPomocy();
-            return; 
+        if (totalWyborow >= 10 && random.nextDouble() < 0.45) {
+            if (pokazEventPomocy()) {
+                return; 
+            }
         }
 
         eventDialog = new Alert(Alert.AlertType.NONE);
@@ -704,14 +715,17 @@ public class Game extends Application {
             currentEvent = null;
             eventDialog = null;
         });
+        panelMapy.requestFocus();
     }
 
     /**
      * Wyświetla specjalne wydarzenie pomocowe, gdy statystyki studenta są na niskim poziomie.
      * Oferuje wybory mające na celu poprawę krytycznych cech.
+     * @return true jeśli wyświetlono zdarzenie, false w przeciwnym razie.
      */
-    private void pokazEventPomocy() {
-        if (student.getEmpatia() < 30) {
+    private boolean pokazEventPomocy() {
+        if (student.getEmpatia() < 30 && totalWyborow - ostatnieZdarzeniaPomocy.getOrDefault("empatia", -10) >= 5) {
+            ostatnieZdarzeniaPomocy.put("empatia", totalWyborow);
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Potrzebujesz pomocy!");
             alert.setHeaderText("Czujesz się samotny i potrzebujesz wsparcia przyjaciół.");
@@ -724,32 +738,24 @@ public class Game extends Application {
 
             alert.showAndWait().ifPresent(response -> {
                 if (response == tak) {
-                    if (student.getEmpatia() < 30) {
-                        Alert konsekwencje = new Alert(Alert.AlertType.INFORMATION);
-                        konsekwencje.setTitle("Konsekwencje decyzji");
-                        konsekwencje.setHeaderText("Kolega odmawia ci pomocy, bo uważa że jesteś chujem.");
-                        konsekwencje.setContentText("Moral: Powinno się pomagać innym, żeby inni pomagali tobie.");
-                        konsekwencje.getDialogPane().setStyle("-fx-font-size: 14px;");
-                        konsekwencje.showAndWait();
+                    if (random.nextDouble() < 0.5) {
+                        student.changeEmpatia(3);
+                        student.changeNieczulosc(-2);
 
+                        Alert info = new Alert(Alert.AlertType.INFORMATION);
+                        info.setTitle("Skutki decyzji");
+                        info.setHeaderText("Kolega chętnie pomaga");
+                        info.setContentText("Konsekwencje: Zyskałeś zaufanie i lepszą współpracę. Moral: Otwartość wzmacnia relacje.");
+                        info.getDialogPane().setStyle("-fx-font-size: 14px;");
+                        info.showAndWait();
+                    } else {
                         student.changeEmpatia(-5);
                         student.changeNieczulosc(3);
 
                         Alert info = new Alert(Alert.AlertType.INFORMATION);
                         info.setTitle("Skutki decyzji");
                         info.setHeaderText("Odrzucona prośba o pomoc");
-                        info.setContentText("Konsekwencje: Kolega odmówił, twoje relacje osłabły. Moral: Pracuj nad empatią i wzajemnością.");
-                        info.getDialogPane().setStyle("-fx-font-size: 14px;");
-                        info.showAndWait();
-                    } else {
-                        student.changeUmiejetnoscWspolpracy(3);
-                        student.changeEmpatia(2); 
-                        student.changeAsertywnosc(1); 
-
-                        Alert info = new Alert(Alert.AlertType.INFORMATION);
-                        info.setTitle("Skutki decyzji");
-                        info.setHeaderText("Kolega chętnie pomaga");
-                        info.setContentText("Konsekwencje: Zyskałeś zaufanie i lepszą współpracę. Moral: Otwartość wzmacnia relacje.");
+                        info.setContentText("Konsekwencje: Kolega odmówił, bo ostatnio go zignorowałeś. Twoje relacje osłabły. Moral: Pracuj nad empatią i wzajemnością.");
                         info.getDialogPane().setStyle("-fx-font-size: 14px;");
                         info.showAndWait();
                     }
@@ -766,7 +772,9 @@ public class Game extends Application {
                     info.showAndWait();
                 }
             });
-        } else if (student.getSamowiadomosc() < 30) {
+            return true;
+        } else if (student.getSamowiadomosc() < 30 && totalWyborow - ostatnieZdarzeniaPomocy.getOrDefault("samowiadomosc", -10) >= 5) {
+            ostatnieZdarzeniaPomocy.put("samowiadomosc", totalWyborow);
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Potrzebujesz pomocy!");
             alert.setHeaderText("Nie wiesz jak sobie poradzić z sytuacją.");
@@ -779,32 +787,26 @@ public class Game extends Application {
 
             alert.showAndWait().ifPresent(response -> {
                 if (response == tak) {
-                    if (student.getSamowiadomosc() < 30) {
-                        Alert konsekwencje = new Alert(Alert.AlertType.INFORMATION);
-                        konsekwencje.setTitle("Konsekwencje decyzji");
-                        konsekwencje.setHeaderText("Kolega daje radę, ale krytykuje twoją naiwność.");
-                        konsekwencje.setContentText("Moral: Lepiej być świadomym swoich słabości.");
-                        konsekwencje.getDialogPane().setStyle("-fx-font-size: 14px;");
-                        konsekwencje.showAndWait();
-
+                    if (random.nextDouble() < 0.5) {
                         student.changeSamowiadomosc(3);
-                        student.changeAsertywnosc(-2);
-
-                        Alert info = new Alert(Alert.AlertType.INFORMATION);
-                        info.setTitle("Skutki decyzji");
-                        info.setHeaderText("Krytyczna rada");
-                        info.setContentText("Konsekwencje: Otrzymałeś ostrą, ale pomocną krytykę. Moral: Ucz się na feedbacku.");
-                        info.getDialogPane().setStyle("-fx-font-size: 14px;");
-                        info.showAndWait();
-                    } else {
-                        student.changeSamowiadomosc(2);
-                        student.changeEmpatia(1); 
-                        student.changeUmiejetnoscWspolpracy(1); 
+                        student.changeAsertywnosc(1);
+                        student.changeImpulsywnosc(-2);
 
                         Alert info = new Alert(Alert.AlertType.INFORMATION);
                         info.setTitle("Skutki decyzji");
                         info.setHeaderText("Przyjęta rada");
                         info.setContentText("Konsekwencje: Czujesz się pewniej i lepiej rozumiesz swoje ograniczenia. Moral: Prośba o radę się opłaca.");
+                        info.getDialogPane().setStyle("-fx-font-size: 14px;");
+                        info.showAndWait();
+                    } else {
+                        student.changeSamowiadomosc(2);
+                        student.changeAsertywnosc(-2);
+                        student.changeImpulsywnosc(-1);
+
+                        Alert info = new Alert(Alert.AlertType.INFORMATION);
+                        info.setTitle("Skutki decyzji");
+                        info.setHeaderText("Krytyczna rada");
+                        info.setContentText("Konsekwencje: Otrzymałeś ostrą, ale pomocną krytykę od kolegi. Moral: Ucz się na feedbacku, nawet jeśli boli.");
                         info.getDialogPane().setStyle("-fx-font-size: 14px;");
                         info.showAndWait();
                     }
@@ -821,7 +823,9 @@ public class Game extends Application {
                     info.showAndWait();
                 }
             });
-        } else if (student.getUmiejetnoscWspolpracy() < 30) {
+            return true;
+        } else if (student.getUmiejetnoscWspolpracy() < 30 && totalWyborow - ostatnieZdarzeniaPomocy.getOrDefault("wspolpraca", -10) >= 5) {
+            ostatnieZdarzeniaPomocy.put("wspolpraca", totalWyborow);
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Potrzebujesz pomocy!");
             alert.setHeaderText("Masz problemy z pracą zespołową.");
@@ -834,32 +838,24 @@ public class Game extends Application {
 
             alert.showAndWait().ifPresent(response -> {
                 if (response == tak) {
-                    if (student.getUmiejetnoscWspolpracy() < 30) {
-                        Alert konsekwencje = new Alert(Alert.AlertType.INFORMATION);
-                        konsekwencje.setTitle("Konsekwencje decyzji");
-                        konsekwencje.setHeaderText("Grupa nie chce cię przyjąć, bo jesteś zbyt egoistyczny.");
-                        konsekwencje.setContentText("Moral: Współpraca wymaga wzajemności.");
-                        konsekwencje.getDialogPane().setStyle("-fx-font-size: 16px;");
-                        konsekwencje.showAndWait();
+                    if (random.nextDouble() < 0.5) {
+                        student.changeUmiejetnoscWspolpracy(4);
+                        student.changeEgocentryzm(-2);
 
+                        Alert info = new Alert(Alert.AlertType.INFORMATION);
+                        info.setTitle("Skutki decyzji");
+                        info.setHeaderText("Dołączyłeś do grupy");
+                        info.setContentText("Konsekwencje: Zyskałeś doświadczenie w pracy zespołowej i nowe kontakty. Moral: Współpraca rozwija umiejętności.");
+                        info.getDialogPane().setStyle("-fx-font-size: 14px;");
+                        info.showAndWait();
+                    } else {
                         student.changeUmiejetnoscWspolpracy(-3);
                         student.changeEgocentryzm(4);
 
                         Alert info = new Alert(Alert.AlertType.INFORMATION);
                         info.setTitle("Skutki decyzji");
                         info.setHeaderText("Odrzuceni przez grupę");
-                        info.setContentText("Konsekwencje: Nie dostałeś miejsca w grupie, twoje umiejętności społeczne wymagają pracy. Moral: Współpraca to dwukierunkowa praca.");
-                        info.getDialogPane().setStyle("-fx-font-size: 14px;");
-                        info.showAndWait();
-                    } else {
-                        student.changeUmiejetnoscWspolpracy(2);
-                        student.changeEmpatia(1); 
-                        student.changeAsertywnosc(1); 
-
-                        Alert info = new Alert(Alert.AlertType.INFORMATION);
-                        info.setTitle("Skutki decyzji");
-                        info.setHeaderText("Dołączyłeś do grupy");
-                        info.setContentText("Konsekwencje: Zyskałeś doświadczenie w pracy zespołowej i nowe kontakty. Moral: Współpraca rozwija umiejętności.");
+                        info.setContentText("Konsekwencje: Grupa nie chce cię przyjąć, bo jesteś zbyt egoistyczny. Twoje statystyki społeczne wymagają pracy. Moral: Współpraca wymaga wzajemności.");
                         info.getDialogPane().setStyle("-fx-font-size: 14px;");
                         info.showAndWait();
                     }
@@ -876,7 +872,9 @@ public class Game extends Application {
                     info.showAndWait();
                 }
             });
-        } else if (student.getAsertywnosc() < 30) {
+            return true;
+        } else if (student.getAsertywnosc() < 30 && totalWyborow - ostatnieZdarzeniaPomocy.getOrDefault("asertywnosc", -10) >= 5) {
+            ostatnieZdarzeniaPomocy.put("asertywnosc", totalWyborow);
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Potrzebujesz pomocy!");
             alert.setHeaderText("Czujesz się niepewnie w wyrażaniu swoich opinii.");
@@ -889,32 +887,24 @@ public class Game extends Application {
 
             alert.showAndWait().ifPresent(response -> {
                 if (response == tak) {
-                    if (student.getAsertywnosc() < 30) {
-                        Alert konsekwencje = new Alert(Alert.AlertType.INFORMATION);
-                        konsekwencje.setTitle("Konsekwencje decyzji");
-                        konsekwencje.setHeaderText("Próbujesz mówić, ale głos ci drży i nikt cię nie słyszy.");
-                        konsekwencje.setContentText("Moral: Asertywność wymaga praktyki i odwagi.");
-                        konsekwencje.getDialogPane().setStyle("-fx-font-size: 16px;");
-                        konsekwencje.showAndWait();
+                    if (random.nextDouble() < 0.5) {
+                        student.changeAsertywnosc(4);
+                        student.changeSamowiadomosc(2);
 
+                        Alert info = new Alert(Alert.AlertType.INFORMATION);
+                        info.setTitle("Skutki decyzji");
+                        info.setHeaderText("Sukces na spotkaniu");
+                        info.setContentText("Konsekwencje: Twoje pomysły zostały docenione — zdobywasz reputację. Moral: Odwaga się opłaca.");
+                        info.getDialogPane().setStyle("-fx-font-size: 14px;");
+                        info.showAndWait();
+                    } else {
                         student.changeAsertywnosc(2);
                         student.changeSamowiadomosc(-1);
 
                         Alert info = new Alert(Alert.AlertType.INFORMATION);
                         info.setTitle("Skutki decyzji");
                         info.setHeaderText("Próba wyrażenia siebie");
-                        info.setContentText("Konsekwencje: Mimo tremy spróbowałeś — to krok do pewności siebie. Moral: Ćwiczenie przynosi rezultaty.");
-                        info.getDialogPane().setStyle("-fx-font-size: 14px;");
-                        info.showAndWait();
-                    } else {
-                        student.changeAsertywnosc(3);
-                        student.changeUmiejetnoscWspolpracy(2); 
-                        student.changeEmpatia(1); 
-
-                        Alert info = new Alert(Alert.AlertType.INFORMATION);
-                        info.setTitle("Skutki decyzji");
-                        info.setHeaderText("Sukces na spotkaniu");
-                        info.setContentText("Konsekwencje: Twoje pomysły zostały docenione — zdobywasz reputację. Moral: Odwaga się opłaca.");
+                        info.setContentText("Konsekwencje: Próbujesz mówić, ale głos ci drży. Mimo tremy spróbowałeś — to krok do pewności siebie. Moral: Asertywność wymaga praktyki.");
                         info.getDialogPane().setStyle("-fx-font-size: 14px;");
                         info.showAndWait();
                     }
@@ -931,7 +921,9 @@ public class Game extends Application {
                     info.showAndWait();
                 }
             });
-        } else if (student.getAgresja() > 70) {
+            return true;
+        } else if (student.getAgresja() > 70 && totalWyborow - ostatnieZdarzeniaPomocy.getOrDefault("agresja", -10) >= 5) {
+            ostatnieZdarzeniaPomocy.put("agresja", totalWyborow);
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Potrzebujesz pomocy!");
             alert.setHeaderText("Czujesz narastający gniew w trudnej sytuacji.");
@@ -944,16 +936,10 @@ public class Game extends Application {
 
             alert.showAndWait().ifPresent(response -> {
                 if (response == tak) {
-                    if (student.getAgresja() > 70) {
-                        Alert konsekwencje = new Alert(Alert.AlertType.INFORMATION);
-                        konsekwencje.setTitle("Konsekwencje decyzji");
-                        konsekwencje.setHeaderText("Próbujesz się uspokoić, ale słowa same wychodzą ostro.");
-                        konsekwencje.setContentText("Moral: Kontrola gniewu wymaga świadomego wysiłku.");
-                        konsekwencje.getDialogPane().setStyle("-fx-font-size: 16px;");
-                        konsekwencje.showAndWait();
-
+                    if (random.nextDouble() < 0.5) {
                         student.changeAgresja(-3);
                         student.changeSamowiadomosc(2);
+                        student.changeImpulsywnosc(-4);
 
                         Alert info = new Alert(Alert.AlertType.INFORMATION);
                         info.setTitle("Skutki decyzji");
@@ -962,14 +948,14 @@ public class Game extends Application {
                         info.getDialogPane().setStyle("-fx-font-size: 14px;");
                         info.showAndWait();
                     } else {
-                        student.changeAgresja(-2);
-                        student.changeEmpatia(2); 
-                        student.changeAsertywnosc(1); 
+                        student.changeAgresja(-1);
+                        student.changeSamowiadomosc(1);
+                        student.changeImpulsywnosc(-2);
 
                         Alert info = new Alert(Alert.AlertType.INFORMATION);
                         info.setTitle("Skutki decyzji");
-                        info.setHeaderText("Skuteczne uspokojenie");
-                        info.setContentText("Konsekwencje: Utrzymałeś spokój i zyskałeś pozytywną reakcję otoczenia. Moral: Panowanie nad emocjami pomaga.");
+                        info.setHeaderText("Trudna walka z emocjami");
+                        info.setContentText("Konsekwencje: Próbujesz się uspokoić, ale słowa same wychodzą ostro. Moral: Kontrola gniewu wymaga świadomego wysiłku.");
                         info.getDialogPane().setStyle("-fx-font-size: 14px;");
                         info.showAndWait();
                     }
@@ -986,10 +972,12 @@ public class Game extends Application {
                     info.showAndWait();
                 }
             });
+            return true;
         }
 
         pasekCechPozytywnych.setText(student.getCechyPozytywneStatus());
         pasekCechNegatywnych.setText(student.getCechyNegatywneStatus());
+        return false;
     }
 
     /**

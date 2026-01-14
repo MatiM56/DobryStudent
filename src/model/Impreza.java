@@ -25,7 +25,7 @@ public class Impreza extends Event.ActivityType {
                 "Twoi znajomi się upili i zaczynają się kłócić",
                 "Mediacja i spokój",
                 "Podjudzasz konflikt aż zaczną się bić",
-                new int[]{0, 0, 5, 0, 0, 0, 4, 0, 0, -3}, // +asertywnosc, +samoregulacja, -agresja
+                new int[]{0, 0, 5, 0, 0, 0, 4, -3, 0, -3}, // +asertywnosc, +samoregulacja, -agresja, -impulsywnosc
                 new int[]{-6, 0, 0, 0, 0, 0, 0, 5, 0, 7}   // -empatia, +impulsywnosc, +agresja
             ),
             // Pożyczka znajomemu
